@@ -1,0 +1,14 @@
+# Paths for the alignment workflow. Edit before running.
+
+# Directory containing paired FASTQ files named {sample}_R1_001.fastq.gz
+fastq_dir: "data/fastq"
+
+# Reference used to build the STAR index
+genome_fasta: "reference/hg38_lav1.fa"
+genome_gtf: "reference/hg38_lav1.gtf"
+
+# Annotation used for gene-level quantification
+count_gtf: "reference/Homo_sapiens.GRCh38.113.gtf"
+
+# Read length minus 1 (150 bp reads -> 149)
+sjdb_overhang: 99

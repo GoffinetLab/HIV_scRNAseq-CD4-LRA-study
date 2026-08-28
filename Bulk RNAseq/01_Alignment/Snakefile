@@ -1,0 +1,116 @@
+# Alignment and quantification workflow
+#
+# Aligns paired-end reads with STAR and assigns gene-level counts with
+# featureCounts. Counts are reduced to three columns (Geneid, Length, count)
+# for input to the R analysis scripts.
+#
+# Usage: snakemake --cores 64 --configfile config.yaml
+
+from snakemake.io import glob_wildcards
+
+FASTQ_DIR = config["fastq_dir"]
+GENOME_FA = config["genome_fasta"]
+GENOME_GTF = config["genome_gtf"]
+COUNT_GTF = config["count_gtf"]
+INDEX_DIR = "results/star_index"
+
+SAMPLES = glob_wildcards(f"{FASTQ_DIR}/{{sample}}_R1_001.fastq.gz").sample
+
+
+rule all:
+    input:
+        expand("results/counts/{sample}.clean.counts.txt", sample=SAMPLES)
+
+
+rule genome_index:
+    input:
+        fasta = GENOME_FA,
+        gtf = GENOME_GTF
+    output:
+        f"{INDEX_DIR}/SA"
+    threads: 64
+    params:
+        index_dir = INDEX_DIR,
+        overhang = config["sjdb_overhang"]
+    shell:
+        """
+        mkdir -p {params.index_dir}
+        STAR --runThreadN {threads} \
+            --runMode genomeGenerate \
+            --genomeDir {params.index_dir} \
+            --genomeFastaFiles {input.fasta} \
+            --sjdbGTFfile {input.gtf} \
+            --sjdbOverhang {params.overhang}
+        """
+
+
+rule align:
+    input:
+        R1 = f"{FASTQ_DIR}/{{sample}}_R1_001.fastq.gz",
+        R2 = f"{FASTQ_DIR}/{{sample}}_R2_001.fastq.gz",
+        index = f"{INDEX_DIR}/SA"
+    output:
+        "results/bam/{sample}_Aligned.sortedByCoord.out.bam"
+    threads: 64
+    params:
+        index_dir = INDEX_DIR
+    shell:
+        """
+        mkdir -p results/bam
+        STAR --runThreadN {threads} \
+            --runMode alignReads \
+            --genomeDir {params.index_dir} \
+            --readFilesIn {input.R1} {input.R2} \
+            --readFilesCommand zcat \
+            --outFileNamePrefix results/bam/{wildcards.sample}_ \
+            --outFilterType BySJout \
+            --outFilterMultimapNmax 20 \
+            --alignSJoverhangMin 8 \
+            --alignSJstitchMismatchNmax -1 -1 -1 -1 \
+            --outSJfilterOverhangMin 12 12 12 12 \
+            --outSJfilterCountUniqueMin 1 1 1 1 \
+            --outSJfilterCountTotalMin 1 1 1 1 \
+            --outSJfilterDistToOtherSJmin 0 0 0 0 \
+            --outFilterMismatchNmax 999 \
+            --outFilterMismatchNoverReadLmax 0.04 \
+            --alignIntronMin 20 \
+            --alignIntronMax 1000000 \
+            --alignMatesGapMax 1000000 \
+            --scoreGapNoncan -4 \
+            --scoreGapATAC -4 \
+            --chimOutType WithinBAM HardClip \
+            --chimScoreJunctionNonGTAG 0 \
+            --genomeLoad NoSharedMemory \
+            --outSAMattributes NH HI AS NM MD \
+            --outSAMtype BAM SortedByCoordinate \
+            --outStd Log \
+            --outTmpDir /tmp/STARtmp
+        """
+
+
+rule feature_counts:
+    input:
+        gtf = COUNT_GTF,
+        bam = "results/bam/{sample}_Aligned.sortedByCoord.out.bam"
+    output:
+        "results/counts/{sample}.counts.txt"
+    threads: 64
+    shell:
+        """
+        mkdir -p results/counts
+        featureCounts -T {threads} -s 2 -t exon -p -a {input.gtf} -o {output} {input.bam}
+        """
+
+
+# Reduce to Geneid, Length and count; strip the BAM path from the header
+rule clean_counts:
+    input:
+        "results/counts/{sample}.counts.txt"
+    output:
+        "results/counts/{sample}.clean.counts.txt"
+    shell:
+        """
+        cut -f1,6,7 {input} \
+            | tail -n +2 \
+            | sed '1s|results/bam/||; 1s/_Aligned.sortedByCoord.out.bam//g' > {output}
+        """
