@@ -1,0 +1,14 @@
+sample_id,molecule_h5
+d1_m,/path/to/GRCh38-2024_021/outs/molecule_info.h5
+d1_v,/path/to/GRCh38-2024_022/outs/molecule_info.h5
+d1_p,/path/to/GRCh38-2024_023/outs/molecule_info.h5
+d1_ip,/path/to/GRCh38-2024_024/outs/molecule_info.h5
+d2_m,/path/to/GRCh38-2024_025/outs/molecule_info.h5
+d2_v,/path/to/GRCh38-2024_026/outs/molecule_info.h5
+d2_p,/path/to/GRCh38-2024_027/outs/molecule_info.h5
+d2_ip,/path/to/GRCh38-2024_028/outs/molecule_info.h5
+d3_m,/path/to/GRCh38-2024_029/outs/molecule_info.h5
+d3_v,/path/to/GRCh38-2024_030/outs/molecule_info.h5
+d3_p,/path/to/GRCh38-2024_031/outs/molecule_info.h5
+d3_ip,/path/to/GRCh38-2024_032/outs/molecule_info.h5
+hd_m,/path/to/GRCh38-2024_04/outs/molecule_info.h5
