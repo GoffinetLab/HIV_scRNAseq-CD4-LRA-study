@@ -1,0 +1,16 @@
+lib;donor;disease;treatment
+1_1;d1;hiv;Mock
+2_1;d1;hiv;Vorinostat
+3_1;d1;hiv;Panobinostat
+4_1;d1;hiv;IL2/PHA
+5_1;d2;hiv;Mock
+6_1;d2;hiv;Vorinostat
+7_1;d2;hiv;Panobinostat
+8_1;d2;hiv;IL2/PHA
+9_1;d3;hiv;Mock
+10_1;d3;hiv;Vorinostat
+11_1;d3;hiv;Panobinostat
+12_1;d3;hiv;IL2/PHA
+13_1;hc1;healthy;Mock
+1_2;pbmc20k10x;healthy;Mock
+1_3;hd1_wang2020;healthy;Mock
